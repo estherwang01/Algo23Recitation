@@ -7,7 +7,7 @@ public class PrettyPrint {
 	/***
 	 * Given a list of words and a character width W, return the indices of words which should be followed
 	 * by a linebreak in the optimal pretty print of all words. Optimal is defined to minimize slack, which
-	 * is the sum of squares of "extra" spaces at the end of each line.
+	 * is the sum of squares of "extra" spaces at the end of each line. Your program will be run from function [main]
 	 *
 	 * Input is given through stdin as
 	 * W
@@ -27,7 +27,11 @@ public class PrettyPrint {
 	
 	/***
 	 * Easily unit-testable by using a different input / output stream.
-	 * Main simply passes in stdin and stdout to conform to spec.
+	 * Main simply passes in stdin and stdout as in the input/output stream to conform to spec.
+	 *
+	 * Unit tests are therefore able to pass in their own streams to capture output stream values.
+	 * Therefore, we can test this method (and be able to test not only the DP logic, but also the
+	 * input parsing / output printing).
 	 */
 	public static void runAlgorithm(InputStream i, OutputStream o) {
 		try{
@@ -38,7 +42,7 @@ public class PrettyPrint {
 			String next = br.readLine();
 			
 			if(next == null || next.equals("")){
-				String res = W*W + "\n";
+				String res = 0 + "\n";
 				bw.write(res);
 				bw.flush();
 				return;
@@ -50,14 +54,14 @@ public class PrettyPrint {
 				words.add(st.nextToken());
 			}
 			
-			//fill out DP table
+			//Set up data structures
 			int[][] slack = precomputeSlack(W, words);
 			int[] opt = new int[words.size()+1];
 			int[] back = new int[words.size()+1];
 			
 			int sol = prettyPrintBottomUp(W, words, opt, back, slack);
 			
-			//backtrace to find solution
+			//backtrace to find set which achieves optimal value determined above
 			List<Integer> breaks = backtrace(back, words.size());
 			
 			//print out solution in expected format using a bufferedwriter
@@ -75,6 +79,11 @@ public class PrettyPrint {
 		
 	}
 	
+	/*
+	* Separating out this logic from the main entrypoint function makes it easily unit-testable on its own
+	* Modularity of code and individually testing methods is a powerful tool for isolating bugs to a specific portion
+	* of your algorithm.
+	* */
 	public static int[][] precomputeSlack(int W, List<String> words){
 		int[][] slack = new int[words.size()+1][words.size()+1]; //earlier word indexes first
 		//slack[i][j] computes slack for including words i through j inclusive on the same line
@@ -94,6 +103,11 @@ public class PrettyPrint {
 		return slack;
 	}
 	
+	/*
+	* This is a standard looking backtracing procedure of following parent pointers.
+	* Again, isolating it to its own method means it is unit testable. Even before you write
+	* out the core DP logic, you can manually construct the input and make sure it does what you'd expect.
+	* */
 	public static List<Integer> backtrace(int[] back, int start){
 		ArrayList<Integer> solution = new ArrayList<>();
 		int curr = start;
@@ -105,6 +119,11 @@ public class PrettyPrint {
 		return solution;
 	}
 	
+	
+	/*
+	* Core DP logic for this problem. As it proceeds, it fills out its argument arrays which have been
+	* passed by reference.
+	* */
 	public static int prettyPrintBottomUp(int W, List<String> words, int[] opt, int[] back, int[][] slack){
 		opt[0] = 0;
 		back[0] = 0;
